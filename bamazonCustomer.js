@@ -37,7 +37,7 @@ function start() {
 }
 
 function customerSearch() {
-  var query = "SELECT item_id FROM products WHERE ?";
+  var query = "SELECT * FROM products WHERE ?";
 
   inquirer
     .prompt([
@@ -53,11 +53,32 @@ function customerSearch() {
       }
     ])
     .then(function(answer) {
-      connection.query(query, { item_id: answer.search }, function(err, res) {
-        for (var i = 0; i < res[i].length; i++) {
+      connection.query(query, { item_id: parseInt(answer.search) }, function(
+        err,
+        res
+      ) {
+        if (err) throw err;
+        for (var i = 0; i < res.length; i++) {
           console.log("Here's your item: " + res[i].product_name);
+          console.log("With a price of: $" + res[i].price);
+          console.log("Here's the quantity: " + res[i].stock_quanitiy);
+          switch (parseInt(answer.search)) {
+            case res[i].stock_quanitiy < parseInt(answer.quantity):
+              // customerOrder();
+              console.log("Hi!");
+
+              break;
+
+            default:
+              console.log("Insufficient quantity!");
+              connection.end();
+              break;
+          }
         }
-        connection.end();
       });
     });
 }
+
+// function customerOrder(){
+
+// }
