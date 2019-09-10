@@ -21,7 +21,7 @@ Using the command line start with `node bamazonCustomer.js`
 
 ## Screenshot of the project in use
 
-![Bamazon](BamazonCustomer "Bamazon")
+![Bamazon](BamazonCustomer.gif "Bamazon")
 
 ## Contain a link to a deployed version of the app
 
