@@ -5,15 +5,15 @@ var connection = mysql.createConnection({
   host: "localhost",
   port: 3306,
   user: "root",
-  password: "*****",
+  password: "VW@man325",
   database: "bamazon"
 });
 
 connection.connect(function(err) {
   if (err) throw err;
   console.log("connected as id: " + connection.threadId);
-  start();
 });
+start();
 
 function start() {
   inquirer
@@ -37,8 +37,6 @@ function start() {
 }
 
 function customerSearch() {
-  var query = "SELECT * FROM products WHERE ?";
-
   inquirer
     .prompt([
       {
@@ -53,32 +51,52 @@ function customerSearch() {
       }
     ])
     .then(function(answer) {
-      connection.query(query, { item_id: parseInt(answer.search) }, function(
-        err,
-        res
-      ) {
-        if (err) throw err;
-        for (var i = 0; i < res.length; i++) {
-          console.log("Here's your item: " + res[i].product_name);
-          console.log("With a price of: $" + res[i].price);
-          console.log("Here's the quantity: " + res[i].stock_quanitiy);
-          switch (parseInt(answer.search)) {
-            case res[i].stock_quanitiy < parseInt(answer.quantity):
-              // customerOrder();
-              console.log("Hi!");
-
-              break;
-
-            default:
-              console.log("Insufficient quantity!");
-              connection.end();
-              break;
-          }
-        }
-      });
+      var itemSearch = parseInt(answer.search);
+      var itemQuantity = parseInt(answer.quantity);
+      purchases(itemSearch, itemQuantity);
     });
 }
 
-// function customerOrder(){
+function purchases(ID, amountNeeded) {
+  var query = "SELECT * FROM products WHERE ?";
+  connection.query(query, { item_id: parseInt(ID) }, function(err, res) {
+    if (err) throw err;
+    for (var i = 0; i < res.length; i++) {
+      console.log("Here's your item: " + res[i].product_name);
+      console.log("With a price of: $" + res[i].price);
+      console.log("Here's the quantity: " + res[i].stock_quanitiy);
+      if (amountNeeded <= res[i].stock_quanitiy) {
+        var totalCost = amountNeeded * res[i].price;
+        console.log("Your order is in stock!");
+        console.log(
+          "Your total for " +
+            amountNeeded +
+            " " +
+            res[i].product_name +
+            " is " +
+            totalCost
+        );
+        console.log("Thank you!");
 
-// }
+        connection.query(
+          "UPDATE products SET ? WHERE ?",
+          [
+            {
+              stock_quanitiy: res[i].stock_quanitiy - amountNeeded
+            },
+            {
+              item_id: parseInt(ID)
+            }
+          ],
+          function(error) {
+            if (error) throw error;
+            start();
+          }
+        );
+      } else {
+        console.log("There is an insufficient quantity for that amount!");
+        start();
+      }
+    }
+  });
+}
